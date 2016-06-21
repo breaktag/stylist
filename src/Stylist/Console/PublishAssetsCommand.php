@@ -12,7 +12,7 @@ class PublishAssetsCommand extends Command
     /**
      * @var string
      */
-    protected $name = 'stylist:publish';
+    protected $signature = 'stylist:publish {theme?} {--views}';
 
     /**
      * @var string
@@ -30,9 +30,14 @@ class PublishAssetsCommand extends Command
     public function handle()
     {
         $this->setupThemes();
-        $this->publishAssets();
 
-        $this->info('Assets published.');
+        $this->publishAssets();
+		$this->info('Assets published.');
+
+        if ($this->option('views')) {
+        	$this->publishViews();
+        	$this->info('Views published to resources.');
+        }
     }
 
     /**
@@ -74,6 +79,25 @@ class PublishAssetsCommand extends Command
     }
 
     /**
+     * Copies the views for those themes which were successfully registered with stylist.
+     */
+    protected function publishViews()
+    {
+        $themes = $this->laravel['stylist']->themes();
+        $requestedTheme = $this->argument('theme');
+
+        if ($requestedTheme) {
+            $theme = $this->laravel['stylist']->get($requestedTheme);
+
+            return $this->publishView($theme);
+        }
+
+        foreach ($themes as $theme) {
+            $this->publishView($theme);
+        }
+    }
+
+    /**
      * Publish a single theme's assets.
      *
      * @param Theme $theme
@@ -85,6 +109,20 @@ class PublishAssetsCommand extends Command
         $this->laravel['files']->copyDirectory($theme->getPath().'/assets/', $themePath);
 
         $this->info($theme->getName().' assets published.');
+    }
+
+    /**
+     * Publish a single theme's views.
+     *
+     * @param Theme $theme
+     */
+    protected function publishView(Theme $theme)
+    {
+        $themePath = base_path('resources/views/themes/' . $theme->getAssetPath());
+
+        $this->laravel['files']->copyDirectory($theme->getPath().'/views/', $themePath);
+
+        $this->info($theme->getName().' views published.');
     }
 
     /**
