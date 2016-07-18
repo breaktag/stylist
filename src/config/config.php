@@ -6,7 +6,7 @@ return [
          * Absolute paths as to where stylist can discover themes.
          */
         'paths' => [
-        	0 => base_path('/themes')
+        	0 => base_path('/Themes')
         ],
 
         /**
